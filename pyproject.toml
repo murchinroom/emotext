@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "emotext"
+version = "0.1.0"
+description = ""
+authors = ["CDFMLR <cdfmlr@163.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+jieba = "^0.42.1"
+
+
+[[tool.poetry.source]]
+name = "qinghua"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+secondary = false
+
+
+[tool.poetry.group.dev.dependencies]
+autopep8 = "^2.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
