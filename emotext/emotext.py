@@ -11,6 +11,7 @@ from typing import List, IO
 import jieba
 import jieba.analyse
 
+
 DICT_FILE_NAME = os.path.join('data', 'dict.csv')
 PKL_FILE_NAME = os.path.join('data', 'words.pkl')
 
@@ -154,10 +155,12 @@ class Emotions(object):
 
         self.words = {}  # {"emotion": [words...]}
         if not self._words_from_pkl():
-            print(f"[emotext] pkl file not found, loading words from {self.dict_path}...", file=sys.stderr)
+            print(
+                f"[emotext] pkl file unavailable, loading words from {self.dict_path}...", file=sys.stderr)
             self._words_from_dict()
             self._save_words_pkl()
-            print(f"[emotext] words loaded from {self.dict_path} -> {self.pkl_path}", file=sys.stderr)
+            print(
+                f"[emotext] words loaded from {self.dict_path} -> {self.pkl_path}", file=sys.stderr)
 
     def _words_from_dict(self):
         self.words = {emo: [] for emo in emotions}
@@ -192,7 +195,11 @@ class Emotions(object):
         if not os.path.exists(self.pkl_path):
             return False
         with open(self.pkl_path, 'rb') as f:
-            self._read_pkl(f)
+            try:
+                self._read_pkl(f)
+            except Exception as e:
+                print(f"Failed to read pkl file: {e}")
+                return False
         return True
 
     def _read_pkl(self, pkl_file: IO):
