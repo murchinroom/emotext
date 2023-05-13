@@ -38,7 +38,8 @@ class TestEmotions(TestCase):
                                value in result.emotions.items() if value != 0}
             result_polarity = {key.name: value for key,
                                value in result.polarity.items() if value != 0}
-            print(f'{text=}\n\t{result_emotions=}\n\t{result_polarity=}')
+            result_va = result.emotions_va()
+            print(f'{text=}\n\t{result_emotions=}\n\t{result_polarity=}\n\t{result_va=}')
 
 
 if __name__ == '__main__':
