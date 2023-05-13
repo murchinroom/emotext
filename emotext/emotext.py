@@ -32,6 +32,20 @@ emotions = categories['happiness'] + categories['goodness'] + \
     categories['anger'] + categories['sadness'] + categories['fear'] + \
     categories['dislike'] + categories['surprise']
 
+va_space = {
+    'PA': [0.7, 0.7],   'PE': [0.7, 0.3], 
+    'PD': [0.53, 0.47], 'PH': [0.6, 0.6], 
+    'PG': [0.67, 0.43], 'PB': [0.67, 0.57], 
+    'PK': [0.6, 0.4],   'NA': [0.37, 0.77], 
+    'NB': [0.33, 0.43], 'NJ': [0.3, 0.7], 
+    'NH': [0.4, 0.4],   'PF': [0.53, 0.27], 
+    'NI': [0.33, 0.57], 'NC': [0.3, 0.7], 
+    'NG': [0.37, 0.5],  'NE': [0.47, 0.67], 
+    'ND': [0.4, 0.6],   'NN': [0.43, 0.57], 
+    'NK': [0.43, 0.47], 'NL': [0.4, 0.43], 
+    'PC': [0.63, 0.77]
+}
+
 
 class Polarity(Enum):
     """极性标注
@@ -87,12 +101,36 @@ class EmotionCountResult:
     """
     emotions: OrderedDict
     polarity: OrderedDict
+    valance_arouse:list
 
     def __init__(self):
         # OrderedDict([('PA', 0), ('PE', 0), ('PD', 0), ...])
         self.emotions = OrderedDict.fromkeys(emotions, 0)
         # OrderedDict([(<Polarity.neutrality: 0>, 0), (<Polarity.positive: 1>, 0), ...])
         self.polarity = OrderedDict.fromkeys(Polarity, 0)
+        # [valance,arouse]
+        self.valance_arouse = []
+
+    def emotions_va(self):
+        valance = 0
+        arouse = 0
+        cnt = 0
+
+        # [[emotion percent, valance, arouse]]
+        self.valance_arouse = [[value] + va_space[key] for key,
+                    value in self.emotions.items() if value != 0]
+        # print(self.valance_arouse)
+
+        for va in self.valance_arouse:
+            valance = valance + va[1] * va[0]
+            arouse = arouse + va[2] * va[0]
+            cnt = cnt + va[0]
+        if cnt:
+            self.valance_arouse = [valance / cnt,  arouse / cnt]
+        else:
+            self.valance_arouse = []
+
+        return self.valance_arouse
 
 
 class Emotions(object):
