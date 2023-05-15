@@ -32,17 +32,18 @@ emotions = categories['happiness'] + categories['goodness'] + \
     categories['anger'] + categories['sadness'] + categories['fear'] + \
     categories['dislike'] + categories['surprise']
 
+# 21 小类情感映射到 valence-arousal 空间
 va_space = {
-    'PA': [0.7, 0.7],   'PE': [0.7, 0.3], 
-    'PD': [0.53, 0.47], 'PH': [0.6, 0.6], 
-    'PG': [0.67, 0.43], 'PB': [0.67, 0.57], 
-    'PK': [0.6, 0.4],   'NA': [0.37, 0.77], 
-    'NB': [0.33, 0.43], 'NJ': [0.3, 0.7], 
-    'NH': [0.4, 0.4],   'PF': [0.53, 0.27], 
-    'NI': [0.33, 0.57], 'NC': [0.3, 0.7], 
-    'NG': [0.37, 0.5],  'NE': [0.47, 0.67], 
-    'ND': [0.4, 0.6],   'NN': [0.43, 0.57], 
-    'NK': [0.43, 0.47], 'NL': [0.4, 0.43], 
+    'PA': [0.7, 0.7],   'PE': [0.7, 0.3],
+    'PD': [0.53, 0.47], 'PH': [0.6, 0.6],
+    'PG': [0.67, 0.43], 'PB': [0.67, 0.57],
+    'PK': [0.6, 0.4],   'NA': [0.37, 0.77],
+    'NB': [0.33, 0.43], 'NJ': [0.3, 0.7],
+    'NH': [0.4, 0.4],   'PF': [0.53, 0.27],
+    'NI': [0.33, 0.57], 'NC': [0.3, 0.7],
+    'NG': [0.37, 0.5],  'NE': [0.47, 0.67],
+    'ND': [0.4, 0.6],   'NN': [0.43, 0.57],
+    'NK': [0.43, 0.47], 'NL': [0.4, 0.43],
     'PC': [0.63, 0.77]
 }
 
@@ -98,10 +99,12 @@ class EmotionCountResult:
 
     emotions: {'情感': 出现次数*情感强度}
     polarity: 整句话的极性: {'褒|贬': 出现次数}
+    valance_arouse: 整句话的 valance-arouse 值: [valance, arouse]
     """
     emotions: OrderedDict
     polarity: OrderedDict
-    valance_arouse:list
+    # TODO: 注意 typos: valance -> valence, arouse -> arousal
+    valance_arouse: list
 
     def __init__(self):
         # OrderedDict([('PA', 0), ('PE', 0), ('PD', 0), ...])
@@ -111,14 +114,15 @@ class EmotionCountResult:
         # [valance,arouse]
         self.valance_arouse = []
 
-    def emotions_va(self):
+    def emotions_va(self) -> list:
+        """计算并返回 valance-arouse 值: [valance, arouse]"""
         valance = 0
         arouse = 0
         cnt = 0
 
         # [[emotion percent, valance, arouse]]
         self.valance_arouse = [[value] + va_space[key] for key,
-                    value in self.emotions.items() if value != 0]
+                               value in self.emotions.items() if value != 0]
         # print(self.valance_arouse)
 
         for va in self.valance_arouse:
