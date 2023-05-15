@@ -47,7 +47,12 @@ class EmotextServer:
                            value in result.emotions.items() if value != 0}
         result_polarity = {key.name: value for key,
                            value in result.polarity.items() if value != 0}
-        return web.json_response({'emotions': result_emotions, 'polarity': result_polarity})
+        va = result.emotions_va() or [None, None]
+        result_va = {"valence": va[0], "arousal": va[1]}
+        return web.json_response({
+            'emotions': result_emotions, 
+            'polarity': result_polarity,
+            'va': result_va})
 
 
 if __name__ == '__main__':

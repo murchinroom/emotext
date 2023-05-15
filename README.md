@@ -30,6 +30,33 @@ or, install dependencies by PIP (no one tested yet):
 pip install --requirement requirements.txt
 ```
 
+## Usage
+
+请求：
+
+```sh
+curl -X POST -d '我今天很开心' http://localhost:9003
+```
+
+响应：
+
+```json
+{
+   "emotions" : {
+      "NN" : 12.19853498427,
+      "PA" : 20.33089164045
+   },
+   "polarity" : {
+      "negative" : 4.06617832809,
+      "positive" : 4.06617832809
+   },
+   "va" : {
+      "arousal" : 0.65125,
+      "valence" : 0.59875
+   }
+}
+```
+
 ## Details for dev
 
 ### DLUT 中文情感词典
