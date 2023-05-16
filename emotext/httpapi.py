@@ -40,17 +40,18 @@ class EmotextServer:
         result = self.emotext.emotion_count(text)
 
         # access log
-        print(
-            f'[HTTP] {datetime.now()}: {request.remote} {request.method} {request.path} {text=}')
+        print(f'[HTTP] '
+              f'{datetime.now()}: {request.remote} {request.method} {request.path} '
+              f'text={text[:12] + (text[12:] and "...")}')
 
         result_emotions = {key: value for key,
                            value in result.emotions.items() if value != 0}
         result_polarity = {key.name: value for key,
                            value in result.polarity.items() if value != 0}
-        va = result.emotions_va() or [None, None]
+        va = result.emotions_va() or [0.5, 0.5]
         result_va = {"valence": va[0], "arousal": va[1]}
         return web.json_response({
-            'emotions': result_emotions, 
+            'emotions': result_emotions,
             'polarity': result_polarity,
             'va': result_va})
 
