@@ -2,11 +2,12 @@ import csv
 import os.path
 import pathlib
 import pickle
+import itertools
 from collections import namedtuple, OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 import sys
-from typing import List, IO
+from typing import Iterable, List, IO, Optional
 
 import jieba
 import jieba.analyse
@@ -125,16 +126,86 @@ class EmotionCountResult:
                                value in self.emotions.items() if value != 0]
         # print(self.valance_arouse)
 
-        for va in self.valance_arouse:
-            valance = valance + va[1] * va[0]
-            arouse = arouse + va[2] * va[0]
-            cnt = cnt + va[0]
-        if cnt:
-            self.valance_arouse = [valance / cnt,  arouse / cnt]
-        else:
-            self.valance_arouse = []
+        # sort by intensity
+        self.valance_arouse.sort(key = lambda x: x[0])
 
+        sum_intensity = sum(map(lambda x: x[0], self.valance_arouse))
+
+        if sum_intensity == 0:
+            self.valance_arouse = [0.5, 0.5]
+            return self.valance_arouse
+
+        # 取出强度贡献前 50% 的情感的 v, a 分量
+        sum_percent = 0
+        valances, arouses = [], []
+        for (intensity, v, a) in self.valance_arouse:
+            percent = intensity / sum_intensity
+
+            valances.append(v)
+            arouses.append(a)
+
+            sum_percent += percent
+            if sum_percent > 0.5:
+                break
+
+        v = va_component_sum(valances)
+        a = va_component_sum(arouses)
+
+        self.valance_arouse = [v, a]
         return self.valance_arouse
+
+
+def va_component_sum(values: Iterable[float], weights: Optional[Iterable[float]]=None) -> float:
+    """这个函数用来求 valence 或 arousal 的矢量和。
+
+    v, a 的值被表示为位于 (0, 0) 到 (1, 1) 的笛卡尔系中的点 (x, y)，
+    但是他们的含义是从 (0.5, 0.5) 指向 (x, y) 的**向量**。
+
+    所以多个情感值 (v, a) 的叠加不能简单地数字加权求和平均。反例：
+
+        VA(0.7, 0.7) + VA(0.7, 0.3) = VA((0.7 + 0.7) / 2, (0.7 + 0.3) / 2) = VA(0.7, 0.5)
+
+    两个高 V 值叠加应该更高，但这种算法*只会减损，不能增益*。
+    正确的做法应该需要坐标变换，在 V-A 的向量空间中，进行矢量加法：
+
+        VA(0.7, 0.7) + VA(0.7, 0.3) = VA(0.9, 0.5)
+
+    这里具体的算法是：
+
+       (x, y) + (u, v) = (x-0.5, y-0.5) +  (u-0.5, v-0.5) + (0.5, 0.5) = (x+u-0.5, y+v-0.5)
+
+    即先做变换 (x - 0.5, y - 0.5)，之后运算，然后再逆变换 (x + 0.5, y + 0.5)。
+
+    ⚠️  不要传 weight 参数！向量和不知道咋加权。
+       这里计算情感加权，感觉是要作为模糊向量的隶属度了。
+       感觉太麻烦，就不要了吧。
+    """
+    if not weights:
+        weights = itertools.repeat(1.0)  # [1, 1, ...]
+
+    sum_v = 0  # 加权和
+    # sum_w = 0  # 权之和
+    sum_n = 0  # 被加数的量
+
+    for (v, w) in zip(values, weights):
+        v = v - 0.5  # 座标变换: (0.0, 0.0) -> (0.5, 0.5)
+
+        sum_n += 1
+        sum_v += v * w
+        # sum_w += w
+
+    if sum_n == 0:
+        return 0.5
+
+    # sum_v /= sum_w  # intensity normalization
+    sum_v += 0.5    # 座标变换: (0.5, 0.5) -> (0.0, 0.0)
+
+    if sum_v < 0:
+        return 0.0
+    if sum_v > 1:
+        return 1.0
+
+    return sum_v
 
 
 class Emotions(object):
